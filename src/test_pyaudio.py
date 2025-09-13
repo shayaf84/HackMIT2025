@@ -57,10 +57,30 @@ def main():
         frame_rel -= frame_rel.mean(axis=2, keepdims=True)
         frame_rel = frame_rel[..., 2]
         frame_rel = np.where(frame_rel > 0.4, frame_rel, 0.0)
-        # idx = np.arange()
 
-        frame_rel = np.stack((frame_rel, frame_rel, frame_rel), axis=-1)
-        cv2.imshow("frame", frame_rel)
+        weights = frame_rel.flatten()
+        weights_sum = np.sum(weights)
+
+        if weights_sum > 1.0:
+            idx = np.arange(height * width)
+            xs = idx % width
+            ys = idx // width
+            center_x = np.sum(xs * weights) / weights_sum
+            center_y = np.sum(ys * weights) / weights_sum
+
+            frame = cv2.ellipse(
+                frame,
+                (int(center_x), int(center_y)),
+                (10, 10),
+                angle = 0,
+                startAngle = 0,
+                endAngle = 360,
+                color = (255, 0, 0),
+                thickness = 2
+            )
+
+        cv2.imshow("frame", frame)
+
         if cv2.waitKey(1) == ord("q"):
             break
 
