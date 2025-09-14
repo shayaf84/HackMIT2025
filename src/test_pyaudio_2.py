@@ -49,7 +49,7 @@ def image_process(x_output: multiprocessing.Queue):
         # Read frames as fast as possible
         cv2.waitKey(1)
 
-def generate_sine_pulse(
+def generate_pulse(
     chunk_size: int,
     sample_rate: int,
     sample_offset: int,
@@ -67,7 +67,7 @@ def generate_sine_pulse(
 
     # Generate pulse
     times = (np.arange(chunk_size) + sample_offset) / sample_rate
-    return sine(times * frequency) * adjusted_volume * envelope * 0.2
+    return sawtooth(times * frequency * 0.5) * adjusted_volume * envelope * 0.2
 
 def audio_process(
     x_input: multiprocessing.Queue,
@@ -78,7 +78,7 @@ def audio_process(
     sample_rate = 48000
     chunk_size = 8192
 
-    piano_key_frequencies = 2 ** ((np.arange(48) - 23) / 12.0) * 440.0
+    piano_key_frequencies = 2 ** ((np.arange(24) - 12) / 12.0) * 440.0
 
     # keep track of x coordinates of laser
     xs = []
@@ -109,7 +109,7 @@ def audio_process(
             pulse_idx = 0
             print("Received current target", current_target)
 
-            sound = generate_sine_pulse(
+            sound = generate_pulse(
                 chunk_size * 2,
                 sample_rate,
                 sample_count,
@@ -131,7 +131,7 @@ def audio_process(
                 continue
 
             # grab note from wherever our head is currently pointing
-            note_idx: int = math.floor(xs[-1] / FRAME_WIDTH * 48)
+            note_idx: int = math.floor(xs[-1] / FRAME_WIDTH * 24)
             frequency = piano_key_frequencies[note_idx]
 
             # play probing pulse every 3 times if we are on the wrong note
@@ -142,7 +142,7 @@ def audio_process(
                     frequency = piano_key_frequencies[current_target]
                     amplitude_coef = 0.8
 
-                sound = generate_sine_pulse(
+                sound = generate_pulse(
                     chunk_size,
                     sample_rate,
                     sample_count,

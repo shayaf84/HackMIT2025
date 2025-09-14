@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+    <head>
+        <title>WebSocket Test</title>
+        <style>
+            body {
+                background: #f6f8fa;
+                font-family: "Segoe UI", Arial, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin: 0;
+                min-height: 100vh;
+            }
+            h1 {
+                margin-top: 40px;
+                color: #222;
+                font-size: 2.2em;
+                letter-spacing: 1px;
+            }
+            #start,
+            #gameBtn {
+                margin-top: 40px;
+                padding: 14px 32px;
+                font-size: 1.2em;
+                background: #0078d4;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                transition: background 0.2s;
+            }
+            #start:hover,
+            #gameBtn:hover {
+                background: #005fa3;
+            }
+            #lineplot {
+                margin-top: 40px;
+                border-radius: 12px;
+                box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+                background: #fff;
+                border: 2px solid #0078d4;
+                width: 400px;
+                height: 40px;
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <button id="start">Start</button>
+        <br />
+        <canvas
+            id="lineplot"
+            width="700"
+            height="200"
+            style="
+                border: 1px solid #000;
+                width: 400px;
+                height: 20px;
+                display: block;
+            "
+        ></canvas>
+
+        <script src="socket.js"></script>
+    </body>
+</html>
