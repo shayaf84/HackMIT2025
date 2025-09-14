@@ -21,7 +21,7 @@ def smoothstep(t: np.ndarray) -> np.ndarray:
     return t * t * (3 - 2 * t)
 
 def image_process(
-    xy_output: multiprocessing.Queue
+    x_output: multiprocessing.Queue
 ):
     video_cap = cv2.VideoCapture(0)
     while True:
@@ -43,13 +43,13 @@ def image_process(
             idx = np.arange(height * width)
             xs = idx % width
             center_x = np.sum(xs * weights) / weights_sum
-            xy_output.put(center_x)
+            x_output.put(center_x)
 
         # Read frames as fast as possible
         cv2.waitKey(1)
 
 def audio_process(
-    xy_input: multiprocessing.Queue,
+    x_input: multiprocessing.Queue,
     pulse_output: multiprocessing.Queue
 ):
     sample_count = 0
@@ -76,11 +76,8 @@ def audio_process(
         # check for any new xy_input
         while True:
             try:
-                center_x = xy_input.get_nowait()
+                center_x = x_input.get_nowait()
                 xs.append(center_x)
-
-                if len(xs) > 5:
-                    xs.pop(0)
             except:
                 break
 
@@ -91,8 +88,6 @@ def audio_process(
 
         # grab note from wherever our head is currently pointing
         note_idx: int = math.floor(xs[-1] / FRAME_WIDTH * 48)
-
-        times = (np.arange(chunk_size) + sample_count) / sample_rate
         frequency = piano_key_frequencies[note_idx]
 
         adjusted_volume = max(0.1, min(2.0, math.exp(-(frequency - 440.0) / 880.0)))
@@ -106,22 +101,26 @@ def audio_process(
         envelope = smoothstep(envelope)
 
         # Generate pulse
+        times = (np.arange(chunk_size) + sample_count) / sample_rate
         sound = sine(times * frequency) * adjusted_volume * envelope * 0.2
 
         pulse_output.put(note_idx)
+
+        # if note_idx != target_idx:
+            # sound *= 0
 
         stream.write(struct.pack("%sf" % chunk_size, *(sample for sample in sound)))
 
         sample_count += chunk_size
 
 def main():
-    xy_queue = multiprocessing.Queue()
+    x_queue = multiprocessing.Queue()
     pulse_queue = multiprocessing.Queue()
 
-    img_worker = multiprocessing.Process(target=image_process, args=(xy_queue,))
+    img_worker = multiprocessing.Process(target=image_process, args=(x_queue,))
     img_worker.start()
 
-    audio_worker = multiprocessing.Process(target=audio_process, args=(xy_queue, pulse_queue))
+    audio_worker = multiprocessing.Process(target=audio_process, args=(x_queue, pulse_queue))
     audio_worker.start()
 
     img_worker.join()
