@@ -79,8 +79,8 @@ def audio_process(xy_input: multiprocessing.Queue):
     frequencies = np.array([
         440.0, # A4
         659.2551, # E5
-        523.2511, # C5
-        783.9909, # G5
+        4 * 440.0, # A6
+        4 * 659.2551, # E6
     ])[None, :, None]
 
     while True:
@@ -89,8 +89,8 @@ def audio_process(xy_input: multiprocessing.Queue):
             try:
                 center_x, center_y = xy_input.get_nowait()
 
-                last_seen_x = center_x
-                last_seen_y = center_y
+                smooth_x = center_x
+                smooth_y = center_y
 
                 x_bucket = int(center_x / bucket_size_pixels)
                 y_bucket = int(center_y / bucket_size_pixels)
@@ -104,12 +104,7 @@ def audio_process(xy_input: multiprocessing.Queue):
             except:
                 break
 
-        weights = np.array([
-            smooth_x / FRAME_WIDTH,
-            1.0 - smooth_x / FRAME_WIDTH,
-            smooth_y / FRAME_HEIGHT,
-            1.0 - smooth_y / FRAME_HEIGHT
-        ])[None, :]
+
 
         num_harmonics = 1.0
 
@@ -144,8 +139,8 @@ def audio_process(xy_input: multiprocessing.Queue):
         # generate a sound for each corner, modulate through distances
 
 
-        smooth_x += (last_seen_x - smooth_x) * 0.45
-        smooth_y += (last_seen_y - smooth_y) * 0.45
+        #smooth_x += (last_seen_x - smooth_x) * 0.45
+        #smooth_y += (last_seen_y - smooth_y) * 0.45
 
         stream.write(struct.pack("%sf" % chunk_size, *(sample for sample in sound)))
         sample_count += chunk_size
