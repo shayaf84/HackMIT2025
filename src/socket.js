@@ -1,11 +1,11 @@
 const socket = new WebSocket("ws://localhost:8000/");
-const canvas = document.getElementById("plot");
+const canvas = document.getElementById("lineplot");
 const ctx = canvas.getContext("2d");
 let points = [];
 let collecting = false;
 
 document.getElementById("showCanvasBtn").onclick = function() {
-    document.getElementById("plot").style.display = "block";
+    document.getElementById("lineplot").style.display = "block";
     collecting = true
 };
 
@@ -19,8 +19,8 @@ socket.onmessage = function(event) {
     if (collecting == true) {
         console.log(event.data);
         const data = JSON.parse(event.data);
-        points.push([data.x, data.y]);
-        drawPoints();
+        currentX = (data.x / 900) * canvas.width
+        drawMovingLine();
     }
     
 };
@@ -33,12 +33,12 @@ socket.onerror = function(error) {
     console.error("WebSocket error:", error);
 };
 
-function drawPoints() {
+function drawMovingLine() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "red";
-    for (const [x, y] of points) {
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, 2*Math.PI);
-        ctx.fill();
-    }
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(currentX, 0);
+    ctx.lineTo(currentX, canvas.height);
+    ctx.stroke();
 }

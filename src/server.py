@@ -4,7 +4,7 @@ import cv2
 import json
 import numpy as np
 
-droidcam_url = "http://<DROIDCAM_IP>/video" 
+droidcam_url = "http://10.189.79.11:4747/video" 
 cap = cv2.VideoCapture(droidcam_url)
 if not cap.isOpened():
     print("Error: Could not open DroidCam stream.")
